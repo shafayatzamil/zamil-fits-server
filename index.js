@@ -1,8 +1,9 @@
 const express = require("express");
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 require("colors");
 const app = express();
 const cors = require("cors");
+const port = process.env.PORT || 5000;
 
 app.use(express.json());
 app.use(cors());
@@ -73,7 +74,26 @@ app.get("/service", async (req, res) => {
     });
   }
 });
+app.get("/service/:id", async (req, res) => {
+  const id = req.params.id;
+  try {
+    const query = { _id: ObjectId(id) };
+    const service = await Service.findOne(query);
 
-app.listen(5000, () => {
+    res.send({
+      success: true,
+      message: "Successfully got the data",
+      data: service,
+    });
+  } catch (error) {
+    console.log(error.name.bgRed, error.message.bold);
+    res.send({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+app.listen(port, () => {
   console.log("server is running on port".cyan);
 });
