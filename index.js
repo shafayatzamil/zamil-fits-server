@@ -207,6 +207,19 @@ app.delete("/review/:id", async (req, res) => {
   }
 });
 
+// user limited
+app.get("/p-users", async (req, res) => {
+  const users = await Service.find({}).limit(3).toArray();
+
+  const count = await Service.estimatedDocumentCount();
+
+  res.send({
+    status: "success",
+    data: users,
+    count: count,
+  });
+});
+
 app.listen(port, () => {
   console.log("server is running on port".cyan);
 });
