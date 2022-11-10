@@ -209,7 +209,7 @@ app.delete("/review/:id", async (req, res) => {
 
 // user limited
 app.get("/p-users", async (req, res) => {
-  const users = await Service.find({}).limit(3).toArray();
+  const users = await Service.find({}).reverse().limit(3).toArray();
 
   const count = await Service.estimatedDocumentCount();
 
