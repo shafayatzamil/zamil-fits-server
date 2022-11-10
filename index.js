@@ -135,6 +135,26 @@ app.post("/review", auth, async (req, res) => {
   }
 });
 
+//all review
+app.get("/review", async (req, res) => {
+  try {
+    const cursor = Review.find({});
+    const services = await cursor.toArray();
+
+    res.send({
+      success: true,
+      message: "Successfully got the data",
+      data: services,
+    });
+  } catch (error) {
+    console.log(error.name.bgRed, error.message.bold);
+    res.send({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
 app.get("/review/:id", async (req, res) => {
   const id = req.params.id;
   try {
@@ -148,6 +168,38 @@ app.get("/review/:id", async (req, res) => {
     });
   } catch (error) {
     console.log(error.name.bgRed, error.message.bold);
+    res.send({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+// singleid reviews delect
+app.delete("/review/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const product = await Review.findOne({ _id: ObjectId(id) });
+
+    if (!product?._id) {
+      res.send({
+        success: false,
+        error: "Product doesn't exist",
+      });
+      return;
+    }
+
+    const result = await Review.deleteOne({ _id: ObjectId(id) });
+
+    if (result.deletedCount) {
+      res.send({
+        success: true,
+        message: `Successfully deleted the ${product.name}`,
+      });
+    } else {
+    }
+  } catch (error) {
     res.send({
       success: false,
       error: error.message,
