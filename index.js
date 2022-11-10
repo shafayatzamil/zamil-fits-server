@@ -105,7 +105,7 @@ app.get("/service/:id", async (req, res) => {
   }
 });
 
-app.post("/review", async (req, res) => {
+app.post("/review", auth, async (req, res) => {
   try {
     const result = await Review.insertOne(req.body);
 
