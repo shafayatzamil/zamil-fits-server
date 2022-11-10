@@ -8,8 +8,25 @@ const auth = require("./middleware/auth");
 const port = process.env.PORT || 5000;
 require("dotenv").config();
 
+// app.use(express.json());
+// app.use(cors({ origin: "http://localhost:3000/" }));
+
+const corsConfig = {
+  origin: "*",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+};
+app.use(cors(corsConfig));
+app.options("*", cors(corsConfig));
 app.use(express.json());
-app.use(cors());
+app.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept,authorization"
+  );
+  next();
+});
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.cruea6x.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -209,7 +226,7 @@ app.delete("/review/:id", async (req, res) => {
 
 // user limited
 app.get("/p-users", async (req, res) => {
-  const users = await Service.find({}).reverse().limit(3).toArray();
+  const users = await Service.find({}).limit(3).toArray();
 
   const count = await Service.estimatedDocumentCount();
 
