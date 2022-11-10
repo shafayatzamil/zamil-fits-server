@@ -1,8 +1,10 @@
 const express = require("express");
+const jwt = require("jsonwebtoken");
 const { MongoClient, ObjectId } = require("mongodb");
 require("colors");
 const app = express();
 const cors = require("cors");
+const auth = require("./middleware/auth");
 const port = process.env.PORT || 5000;
 require("dotenv").config();
 
@@ -11,8 +13,8 @@ app.use(cors());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.cruea6x.mongodb.net/?retryWrites=true&w=majority`;
 
-// const uri = "mongodb://localhost:27017";
 const client = new MongoClient(uri);
+// connection on database
 
 async function dbConnect() {
   try {
@@ -25,9 +27,18 @@ async function dbConnect() {
 dbConnect();
 
 const Service = client.db("zamilfits").collection("services");
+const Review = client.db("zamilfits").collection("reviews");
 
-app.get("/", (req, res) => {
+app.get("/", auth, (req, res) => {
   res.send("server catch the data");
+});
+
+app.post("/signtoken", (req, res) => {
+  const token = jwt.sign({ id: req.body.userid }, process.env.JWT_SECRET);
+
+  res.json({
+    token,
+  });
 });
 
 // service add from user
@@ -84,6 +95,56 @@ app.get("/service/:id", async (req, res) => {
       success: true,
       message: "Successfully got the data",
       data: service,
+    });
+  } catch (error) {
+    console.log(error.name.bgRed, error.message.bold);
+    res.send({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+app.post("/review", async (req, res) => {
+  try {
+    const result = await Review.insertOne(req.body);
+
+    const query = { _id: ObjectId(result.insertedId) };
+    const review = await Review.findOne(query);
+
+    if (result.insertedId) {
+      res.send({
+        success: true,
+        message: `Successfully created the  with id ${result.insertedId}`,
+        data: {
+          review: review,
+        },
+      });
+    } else {
+      res.send({
+        success: false,
+        error: "Couldn't create the review",
+      });
+    }
+  } catch (error) {
+    console.log(error.name.bgRed, error.message.bold);
+    res.send({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+app.get("/review/:id", async (req, res) => {
+  const id = req.params.id;
+  try {
+    const query = Review.find({ service: id });
+    const reviews = await query.toArray();
+
+    res.send({
+      success: true,
+      message: "Successfully got the data",
+      data: reviews,
     });
   } catch (error) {
     console.log(error.name.bgRed, error.message.bold);
